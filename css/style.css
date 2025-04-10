@@ -1,34 +1,16 @@
-/* style.css - GlowPlankton Visual Base */
+/* GlowFractal - Visual Style */
 
 html, body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-  }
-  
-  canvas {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* Optional future: UI layer styling */
-  #ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    font-family: monospace;
-    font-size: 14px;
-    background: rgba(0,0,0,0.5);
-    padding: 5px 10px;
-    border-radius: 6px;
-    z-index: 10;
-  }
-  
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: black;
+  width: 100%;
+  height: 100%;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

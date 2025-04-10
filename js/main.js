@@ -1,37 +1,61 @@
-import { drawBackground, setupRings } from './background.js';
-import { planktons, createPlankton, drawPlanktons, updatePlanktons } from './plankton.js';
-import { updatePlanktonEnergy, updateEnvironment, drawEnvironment } from './energy.js';
+import { rand } from './utils.js';
+import { Fractal } from './fractal.js';
 
-const bgCanvas = document.getElementById('bgCanvas');
-const mainCanvas = document.getElementById('mainCanvas');
-bgCanvas.width = mainCanvas.width = window.innerWidth;
-bgCanvas.height = mainCanvas.height = window.innerHeight;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-export const bgCtx = bgCanvas.getContext('2d');
-export const ctx = mainCanvas.getContext('2d');
+export const fractals = [];
 
-setupRings(bgCanvas.width, bgCanvas.height);
-
-// 🐣 初期個体生成
-for (let i = 0; i < 10; i++) {
-  planktons.push(createPlankton(i, Math.random() * mainCanvas.width, Math.random() * mainCanvas.height));
+// 🌱 初期個体を生成（植物＋動物ランダム）
+for (let i = 0; i < 20; i++) {
+  const dna = Fractal.generateRandomDNA();
+  const x = rand(100, canvas.width - 100);
+  const y = rand(100, canvas.height - 100);
+  fractals.push(new Fractal(dna, x, y));
 }
 
-// 🎞️ アニメーションループ（残像最適化済）
-function animate(t) {
-  drawBackground(t);                 // 幾何学背景レイヤー（bgCanvas）
+let generationCounter = 0;
+let frameCount = 0;
 
-  // 🧼 フェード塗りで残像軽減
-  ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; // ← ここで残像感を調整（低いほど薄く）
-  ctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+function evolutionCycle() {
+  if (fractals.length < 10) return;
 
-  updateEnvironment();              // 💩→🌱環境進化
-  updatePlanktons(t);              // 個体移動
-  updatePlanktonEnergy(t);         // 捕食・エネルギー処理
-  drawEnvironment();               // フン・植物描画
-  drawPlanktons(t);                // 個体描画
+  fractals.sort((a, b) => b.getFitness() - a.getFitness());
+  const cullCount = Math.floor(fractals.length * 0.3);
+  const survivors = fractals.slice(0, fractals.length - cullCount);
+  const parents = survivors.slice(0, 5);
+
+  for (let i = 0; i < cullCount; i++) {
+    const parent = parents[Math.floor(Math.random() * parents.length)];
+    const newDNA = parent.mutateDNA();
+    const x = rand(100, canvas.width - 100);
+    const y = rand(100, canvas.height - 100);
+    survivors.push(new Fractal(newDNA, x, y));
+  }
+
+  fractals.length = 0;
+  fractals.push(...survivors);
+  generationCounter++;
+  console.log(`🌱 Generation ${generationCounter}`);
+}
+
+function animate() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let f of fractals) {
+    f.update(fractals);
+    if (!f.dead) f.draw(ctx);
+  }
+
+  frameCount++;
+  if (frameCount % 600 === 0) {
+    evolutionCycle();
+  }
 
   requestAnimationFrame(animate);
 }
 
-animate(0);
+animate();
